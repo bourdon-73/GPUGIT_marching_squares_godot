@@ -1,0 +1,28 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7y1daf03vj7v"]
+
+[ext_resource type="Script" path="res://compute3d/marchign_.gd" id="1_5oh8m"]
+[ext_resource type="Shader" uid="uid://8cav08a72tu7" path="res://shaders/TerrainVisual.tres" id="1_vtw4w"]
+[ext_resource type="Script" path="res://compute3d/camera_3d.gd" id="2_cloiw"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_esspp"]
+render_priority = 0
+shader = ExtResource("1_vtw4w")
+
+[sub_resource type="Environment" id="Environment_jeqhg"]
+
+[node name="world" type="Node3D"]
+
+[node name="terrain" type="MeshInstance3D" parent="." node_paths=PackedStringArray("player")]
+material_override = SubResource("ShaderMaterial_esspp")
+script = ExtResource("1_5oh8m")
+player = NodePath("../player")
+
+[node name="player" type="Camera3D" parent="."]
+script = ExtResource("2_cloiw")
+default_velocity = 17.8
+speed_scale = 7.19
+boost_speed_multiplier = 15.7
+max_speed = 8000.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_jeqhg")

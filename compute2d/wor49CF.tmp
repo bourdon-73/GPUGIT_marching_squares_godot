@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://p53xfpa2d863"]
+
+[ext_resource type="Script" path="res://compute2d/marching2d.gd" id="1_5xr17"]
+
+[node name="world" type="Node2D"]
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+script = ExtResource("1_5xr17")
+
+[node name="Camera2D" type="Camera2D" parent="."]

@@ -1,0 +1,169 @@
+shader_type canvas_item;
+
+
+uniform vec3 col = vec3(0.5, 0.0, 0.25);
+uniform sampler2D my_texture: repeat_enable;
+uniform float scale = 1.0;
+
+
+uniform float speed : hint_range(0, 1) = 0.1;
+uniform float n_scale : hint_range(0, 100) = 10.0;
+uniform float edge_fade1 : hint_range(0, 1) = 0.5;
+uniform float cloud_density : hint_range(0, 1) = 0.5; // new uniform for overall density
+uniform vec4 cloud_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float density :  hint_range(-10, 1) = 0.5;
+
+
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+vec3 mod289(vec3 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec2 mod2892(vec2 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec3 permute(vec3 x) {
+  return mod289(((x*34.0)+10.0)*x);
+}
+
+float snoise(vec2 v)
+  {
+  const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
+                      0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
+                     -0.577350269189626,  // -1.0 + 2.0 * C.x
+                      0.024390243902439); // 1.0 / 41.0
+// First corner
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+
+// Other corners
+  vec2 i1;
+  //i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0
+  //i1.y = 1.0 - i1.x;
+  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  // x0 = x0 - 0.0 + 0.0 * C.xx ;
+  // x1 = x0 - i1 + 1.0 * C.xx ;
+  // x2 = x0 - 1.0 + 2.0 * C.xx ;
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+
+// Permutations
+  i = mod2892(i); // Avoid truncation effects in permutation
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+		+ i.x + vec3(0.0, i1.x, 1.0 ));
+
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m*m ;
+  m = m*m ;
+
+// Gradients: 41 points uniformly over a line, mapped onto a diamond.
+// The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
+
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+
+// Normalise gradients implicitly by scaling m
+// Approximation of: m *= inversesqrt( a0*a0 + h*h );
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+
+// Compute final noise value at P
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+
+float modified_snoise(vec2 v, float edge_fade) {
+  float center_offset = length(v - n_scale * 0.5);
+  float fade_factor = 1.0 - edge_fade * center_offset;
+  fade_factor = clamp(fade_factor, 0.0, 1.0);
+
+  // Apply fade factor to noise amplitude
+  const vec4 C = vec4(0.211324865405187,
+                      0.366025403784439,
+                     -0.577350269189626,
+                      0.024390243902439);
+
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+
+  vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+		+ i.x + vec3(0.0, i1.x, 1.0 ));
+
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m*m ;
+  m = m*m ;
+
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+
+  // Apply fade factor to noise amplitude
+  return 130.0 * dot(m, g) * fade_factor;
+}
+
+
+// Fragment shader: calculates color for each pixel
+void fragment() {
+
+    vec2 grid_uv = floor(UV * 32.0); // 32x32 grid
+
+	float curve_offset = UV.y * (1.0 - UV.y); // adjust this curve to match your mesh
+    vec2 uv = vec2(grid_uv.x / 32.0, UV.y + curve_offset) * n_scale + vec2(TIME * speed, TIME * speed * 0.5);
+    //vec2 uv = vec2(UV.x + curve_offset, UV.y) * n_scale + vec2(TIME * speed, TIME * speed * 0.5);
+    float n = snoise(uv);
+
+    float cloud = smoothstep(edge_fade1,density+1.0, n);
+
+    vec4 tex_color = texture(my_texture, UV/(scale * vec2(textureSize(my_texture,0))));
+    tex_color.rgb *= col;
+    COLOR.rgb = mix(tex_color.rgb, cloud_color.rgb, cloud);
+    COLOR.a = tex_color.a;
+}
+
+
+
+//void fragment() {
+    //vec2 uv = UV * scale + vec2(TIME * speed, TIME * speed * 0.5);
+    //float n = snoise(uv);
+    //float cloud = smoothstep(density, density + 0.1, n);
+    //
+    //vec4 tex_color = texture(my_texture, UV/(scale * vec2(textureSize(my_texture,0))));
+    //tex_color.rgb *= col; // Apply color tint
+    //
+    //// Combine cloud and texture colors
+    //COLOR.rgb = mix(tex_color.rgb, cloud_color.rgb, cloud);
+    //COLOR.a = tex_color.a; // Preserve texture alpha
+//}
+
+
+
+
+//void fragment() {
+    //vec2 uv = UV * scale + vec2(TIME * speed, TIME * speed * 0.5);
+    //float n = snoise(uv);
+    //float cloud = smoothstep(density, density + 0.1, n);
+    //COLOR = cloud_color * cloud;
+//
+//
+    //vec4 tex_color = texture(my_texture, UV/(scale * vec2(textureSize(my_texture,0))));
+    //COLOR.rgb = tex_color.rgb * col;
+//}

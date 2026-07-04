@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3 uid="uid://cl4w03c43c6bv"]
+
+[ext_resource type="Shader" path="res://shaders/perlin.gdshader" id="1_bxaki"]
+[ext_resource type="Texture2D" uid="uid://b140rqbxrii4q" path="res://compute2d/93d1632f36cb12816efcc4ef8f7fa608.jpg" id="1_qgsyc"]
+[ext_resource type="Shader" path="res://shaders/vertex_learning.gdshader" id="3_mvakv"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_akjd8"]
+shader = ExtResource("1_bxaki")
+shader_parameter/scale = 0.92
+shader_parameter/speed = 0.0
+shader_parameter/n_scale = 0.005
+shader_parameter/cloud_density = 0.887
+shader_parameter/cloud_color = Color(1, 1, 1, 1)
+shader_parameter/density = 0.0880005
+shader_parameter/blend_amount = 0.5
+shader_parameter/my_texture = ExtResource("1_qgsyc")
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_7jt06"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_a1g2j"]
+shader = ExtResource("3_mvakv")
+shader_parameter/col = Vector3(0.25, 0, 0)
+shader_parameter/scale = 1.0
+shader_parameter/speed = 0.1
+shader_parameter/n_scale = 10.0
+shader_parameter/edge_fade1 = 0.5
+shader_parameter/cloud_density = 0.5
+shader_parameter/cloud_color = Color(1, 1, 1, 1)
+shader_parameter/density = 0.5
+shader_parameter/my_texture = ExtResource("1_qgsyc")
+
+[node name="chunk" type="MeshInstance2D"]
+use_parent_material = true
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_akjd8")
+position = Vector2(312.858, 254.155)
+scale = Vector2(2.98011, 1.91753)
+texture = SubResource("PlaceholderTexture2D_7jt06")
+polygon = PackedVector2Array(1291.95, -643.097, 1653.34, 1082.56, 91.3194, 1251.01, -202.294, -692.64, 312.452, -937.747)
+
+[node name="text" type="Sprite2D" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_a1g2j")
+position = Vector2(398, 274)
+texture = ExtResource("1_qgsyc")
