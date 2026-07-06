@@ -3,6 +3,12 @@ This is the main article that got me going : https://catlikecoding.com/unity/tut
 
 
 
-1. We generate points data on glsl using Noise. Points are either in outside of a shape <img width="750" height="750" alt="tutorial-image" src="https://github.com/user-attachments/assets/0c85dc9d-30f4-42a6-b745-7f3881bd14e3" />
+1. We generate points data on glsl using Noise. Points are either in outside of a shape.
+<img width="750" height="750" alt="tutorial-image" src="https://github.com/user-attachments/assets/0c85dc9d-30f4-42a6-b745-7f3881bd14e3" />
 
-3. 
+2.Next we send back the results using buffers which is super fast. And we build a mesh from that data every frame.
+
+
+the issues : 
+- The current problem is that some starting chunks aren't generated
+- Some triangle artifacts are created.
