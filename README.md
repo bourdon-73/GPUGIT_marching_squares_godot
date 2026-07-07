@@ -1,4 +1,5 @@
-<img width="800" height="500" alt="ezgif-3bc37f7431e83303" src="https://github.com/user-attachments/assets/09b756ec-85a6-4625-97d4-91c051b5fa10" />
+<img width="408" height="263" alt="marching_gif" src="https://github.com/user-attachments/assets/5736f84c-c524-4f09-ad9c-59f1e444929a" />
+
 
 2000 fps btw 😏
 
