@@ -1,3 +1,7 @@
+<img width="800" height="500" alt="ezgif-3bc37f7431e83303" src="https://github.com/user-attachments/assets/09b756ec-85a6-4625-97d4-91c051b5fa10" />
+
+2000 fps btw 😏
+
 This was hard. Learning GLSL was not easy but I almost made it work. Im still proud tho.
 This is the main article that got me going : https://catlikecoding.com/unity/tutorials/marching-squares-2/
 
